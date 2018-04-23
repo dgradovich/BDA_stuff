@@ -49,8 +49,21 @@ class Inferencer:
 if __name__ == '__main__':
     x = np.arange(1, 11)
     y = np.array([1, 1, 1, 0, 1, 1, 0, 0, 0, 0])
-    # prob = Probit_reg.probit_reg(x,y)
-    # print(prob)
-    model = pystan.StanModel(model_code=Modeller.probit_reg())
-    fit = model.sampling(data = {'N':10,'x':x,'y':y}, iter=1000, chains=2)
-    print(fit)
+
+    tao_alpha = tao_beta = 1 / 10
+    mu_alpha = mu_beta = 0
+
+    prob = Probit_reg.probit_reg(x,y)
+    print(prob)
+    # model = pystan.StanModel(model_code=Modeller.probit_reg())
+    # fit = model.sampling(data = {'N':10,'x':x,'y':y}, iter=1000, chains=2)
+    # print(fit)
+    # tao_alpha = tao_beta = 1 / 100
+    # mu_alpha = mu_beta = 0
+    gibbs = Gibbs()
+    intercept_g, slope_g= gibbs.gibbs_probit_reg(tao_alpha, tao_beta, mu_alpha, mu_beta, x, y)
+
+    print(np.percentile(intercept_g, [10, 25, 50, 75, 90]))
+    print(np.percentile(slope_g, [10, 25, 50, 75, 90]))
+
+    plt.plot(slope_g[:500]); plt.show()
