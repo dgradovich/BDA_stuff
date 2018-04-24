@@ -54,3 +54,62 @@ class Modeller:
         }
         """
         return probit
+
+    @staticmethod
+    def logistic_reg():
+        """Logistic regression model with both parameters"""
+        log_reg = """
+
+            data {
+            int<lower=0> N;
+            real x[N];
+            int<lower=0> y[N];
+            }
+
+            parameters {
+            real alpha;
+            real beta;
+            }
+
+            transformed parameters {
+            real p[N];
+            for (i in 1:N){
+                    p[i] = inv_logit(alpha*x[i] + beta);
+                    }
+            }
+            model {
+            alpha~normal(0,100);
+            beta~normal(0,100);
+            y~binomial(5,p);
+            }
+        """
+        return log_reg
+
+    @staticmethod
+    def logistic_reg_fixed_beta():
+        """Logistic regression model with beta fixed to 10"""
+        log_reg = """
+
+            data {
+            int<lower=0> N;
+            real x[N];
+            int<lower=0> y[N];
+            real beta; //fixed beta parameter
+            }
+
+            parameters {
+            real alpha;
+            }
+
+            transformed parameters {
+            real p[N];
+            for (i in 1:N){
+                    p[i] = inv_logit(alpha*x[i] + beta);
+                    }
+            }
+            model {
+            alpha~normal(0,100);
+            y~binomial(5,p);
+            }
+        """
+        return log_reg
