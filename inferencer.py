@@ -5,6 +5,7 @@ import numpy as np
 import pystan
 import matplotlib.pyplot as plt
 from Freq import Lin_reg, Probit_reg
+from Metropolis import Metropolis
 
 class Inferencer:
     def __init__(self):
@@ -79,7 +80,7 @@ class Inferencer:
         print(np.percentile(slope_g, [10, 25, 50, 75, 90]))
 
     @staticmethod
-    def logistic():
+    def binom():
         """Logistic with Metropolis"""
         # Toy data
         n = 5*np.ones(4)
@@ -88,6 +89,7 @@ class Inferencer:
 
         # Parameter values
         tao_alpha = tao_beta = 1/100**2
+        burn_in = 250
 
         # model = pystan.StanModel(model_code=Modeller.logistic_reg())
         # fit = model.sampling(data = {'N':len(x),'x':x,'y':y}, iter=1000, chains=2)
@@ -96,7 +98,34 @@ class Inferencer:
         # model = pystan.StanModel(model_code=Modeller.logistic_reg_fixed_beta())
         # fit = model.sampling(data = {'N':len(x),'x':x,'y':y, 'beta':10}, iter=1000, chains=2)
         # print(fit)
+        #
+        # m = Metropolis()
+        # alpha_est = m.metropolis_one_step(x,y)
+        # print(np.percentile(alpha_est[500:], [10, 25, 50, 75, 90]))
 
+        # m = Metropolis()
+        # alpha_est, beta_est = m.metropolis_two_step(x,y)
+        # print(np.percentile(alpha_est[burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[burn_in:], [10, 25, 50, 75, 90]))
+        #
+        # plt.scatter(alpha_est[burn_in:], beta_est[burn_in:]);plt.show()
+        # plt.hist(-1 * alpha_est[burn_in:] / beta_est[burn_in:]); plt.show() # LD50 values
+        #
+        # m = Metropolis()
+        # alpha_est, beta_est = m.metropolis_2d(x,y)
+        # print(np.percentile(alpha_est[burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[burn_in:], [10, 25, 50, 75, 90]))
+        #
+        # plt.scatter(alpha_est[burn_in:], beta_est[burn_in:]);plt.show()
+        # plt.hist(-1 * np.array(alpha_est)[burn_in:] / np.array(beta_est)[burn_in:]); plt.show() # LD50 values
+
+        m = Metropolis()
+        alpha_est, beta_est = m.metropolis_2d_opt(x,y)
+        print(np.percentile(alpha_est[burn_in:], [10, 25, 50, 75, 90]))
+        print(np.percentile(beta_est[burn_in:], [10, 25, 50, 75, 90]))
+
+        # plt.scatter(alpha_est[burn_in:], beta_est[burn_in:]);plt.show()
+        # plt.hist(-1 * np.array(alpha_est)[burn_in:] / np.array(beta_est)[burn_in:]); plt.show() # LD50 values
 
 if __name__ == '__main__':
-    Inferencer.logistic()
+    Inferencer.binom()

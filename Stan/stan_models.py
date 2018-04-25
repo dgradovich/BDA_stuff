@@ -74,13 +74,17 @@ class Modeller:
             transformed parameters {
             real p[N];
             for (i in 1:N){
-                    p[i] = inv_logit(alpha*x[i] + beta);
+                    p[i] = inv_logit(beta*x[i] + alpha);
                     }
             }
             model {
-            alpha~normal(0,100);
-            beta~normal(0,100);
+            alpha~normal(0,10);
+            beta~normal(0,10);
             y~binomial(5,p);
+            }
+            generated quantities {
+            real ld50; // ld50 parameter
+            ld50 = -alpha/beta;
             }
         """
         return log_reg
@@ -104,7 +108,7 @@ class Modeller:
             transformed parameters {
             real p[N];
             for (i in 1:N){
-                    p[i] = inv_logit(alpha*x[i] + beta);
+                    p[i] = inv_logit(beta*x[i] + alpha);
                     }
             }
             model {
