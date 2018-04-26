@@ -12,9 +12,12 @@ class Metropolis:
         self.prior_mean = 0
         self.prior_std = 100
         self.n = 5
-        self.n_iter = 500
+        self.n_iter = 2000
         self.n_params = 2
         self.c = c
+        self.sigma = np.diag([1,1])
+        self.prior_mean = 0
+
 
     def metropolis_one_step(self,x,y):
         """Metropolis algorithm for Binomial model with fixed beta"""
@@ -25,12 +28,10 @@ class Metropolis:
 
             candidate = np.random.randn(1) + alpha[-1]
             candidate_prob = self._target_post(x,y,candidate, self.fixed_beta)
-
             alpha_candidate = alpha[-1]
             alpha_prob = self._target_post(x,y,alpha_candidate, self.fixed_beta)
 
             density_ratio = candidate_prob/alpha_prob
-
             density_ratio_prob = np.min([1, density_ratio])
             uni_n = np.random.uniform(0,1,1)
 
@@ -40,15 +41,20 @@ class Metropolis:
                 alpha = np.append(alpha, alpha_candidate)
         return alpha
 
-
-
-
     def _target_post(self,x,y, alpha, beta):
-        """Evaluate target posterior - alpha is a parameter"""
-        beta_pr = norm(self.prior_mean,self.prior_std).pdf(self.fixed_beta)
+        """Evaluate target posterior - alpha is a parameter - binomial logit"""
+        prior = norm(self.prior_mean,self.prior_std).pdf(beta)
         likelihood = (self._inv_logit(alpha + beta*x)**y)*((1-self._inv_logit(alpha + beta*x))**(self.n-y))
         likelihood = reduce(mul, likelihood)
-        return beta_pr * likelihood
+        return prior * likelihood
+
+    def _target_post_2d(self,x,y, alpha, beta):
+        """Evaluate target posterior - alpha is a parameter - binomial logit"""
+        prior_alpha = norm(self.prior_mean,self.prior_std).pdf(alpha)
+        prior_beta = norm(self.prior_mean,self.prior_std).pdf(beta)
+        likelihood = (self._inv_logit(alpha + beta*x)**y)*((1-self._inv_logit(alpha + beta*x))**(self.n-y))
+        likelihood = reduce(mul, likelihood)
+        return prior_alpha * prior_beta * likelihood
 
     def _inv_logit(self, val):
         """Evaluate inverse logit"""
@@ -63,12 +69,9 @@ class Metropolis:
 
             candidate = np.random.randn(1) + alpha[-1] # new candidate for alpha
             candidate_prob = self._target_post(x, y, candidate, beta[-1])
-
             old_alpha = alpha[-1]
             alpha_prob = self._target_post(x, y, old_alpha, beta[-1])
-
             density_ratio = candidate_prob / alpha_prob
-
             density_ratio_prob = np.min([1, density_ratio])
             uni_n = np.random.uniform(0, 1, 1)
 
@@ -79,12 +82,9 @@ class Metropolis:
 
             candidate = np.random.randn(1) + beta[-1] # new candidate for beta
             candidate_prob = self._target_post(x, y, alpha[-1], candidate)
-
             old_beta = beta[-1]
             beta_prob = self._target_post(x, y, alpha[-1], old_beta)
-
             density_ratio = candidate_prob / beta_prob
-
             density_ratio_prob = np.min([1, density_ratio])
             uni_n = np.random.uniform(0, 1, 1)
 
@@ -103,13 +103,10 @@ class Metropolis:
         for i in trange(self.n_iter):
 
             candidate = np.random.multivariate_normal(np.array([0,0]), np.diag([1,1])) + params[-1] # new candidate for alpha
-            candidate_prob = self._target_post(x, y, candidate[0], candidate[1])
-
+            candidate_prob = self._target_post_2d(x, y, candidate[0], candidate[1])
             old_params = params[-1]
-            alpha_prob = self._target_post(x, y, old_params[0], old_params[1])
-
+            alpha_prob = self._target_post_2d(x, y, old_params[0], old_params[1])
             density_ratio = candidate_prob / alpha_prob
-
             density_ratio_prob = np.min([1, density_ratio])
             uni_n = np.random.uniform(0, 1, 1)
 
@@ -121,26 +118,20 @@ class Metropolis:
         return [x[0] for x in params], [x[1] for x in params]
 
     def metropolis_2d_opt(self,x,y):
-
         """
         Metropolis algorithm for Binomial model - 2d updates - opt
         """
-        #TODO
         #init values for parameters
         c = self.c / np.sqrt(self.n_params) # scaling param
-        params = [np.random.multivariate_normal(np.array([0,0]), c**2*np.diag([1,1]))]
-
+        params = [np.random.multivariate_normal(np.array([0,0]), c**2*self.sigma)]
 
         for i in trange(self.n_iter):
 
-            candidate = np.random.multivariate_normal(np.array([0,0]), c**2*np.diag([1,1])) + params[-1] # new candidate for alpha
-            candidate_prob = self._target_post(x, y, candidate[0], candidate[1])
-
+            candidate = np.random.multivariate_normal(np.array([0,0]), c**2*self.sigma) + params[-1] # new candidate for alpha
+            candidate_prob = self._target_post_2d(x, y, candidate[0], candidate[1])
             old_params = params[-1]
-            alpha_prob = self._target_post(x, y, old_params[0], old_params[1])
-
+            alpha_prob = self._target_post_2d(x, y, old_params[0], old_params[1])
             density_ratio = candidate_prob / alpha_prob
-
             density_ratio_prob = np.min([1, density_ratio])
             uni_n = np.random.uniform(0, 1, 1)
 
@@ -150,3 +141,4 @@ class Metropolis:
                 params.append(old_params)
 
         return [x[0] for x in params], [x[1] for x in params]
+

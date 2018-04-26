@@ -6,11 +6,19 @@ import pystan
 import matplotlib.pyplot as plt
 from Freq import Lin_reg, Probit_reg
 from Metropolis import Metropolis
+from PE import PointEstimator
+from pymc3.stats import autocorr
+from MH import MH
 
 class Inferencer:
     def __init__(self):
-        # instantiate
-        pass
+        self.burn_in = 500
+
+    def autocorr(self, posterior_chain):
+        """Produce autocorrelation plots"""
+        lags = np.arange(1, 100)
+        plt.plot(lags, [autocorr(posterior_chain[self.burn_in:], l) for l in lags]);
+        plt.show()
 
     @staticmethod
     def gibbs_blr():
@@ -79,8 +87,8 @@ class Inferencer:
         print(np.percentile(intercept_g, [10, 25, 50, 75, 90]))
         print(np.percentile(slope_g, [10, 25, 50, 75, 90]))
 
-    @staticmethod
-    def binom():
+
+    def binom(self):
         """Logistic with Metropolis"""
         # Toy data
         n = 5*np.ones(4)
@@ -89,7 +97,7 @@ class Inferencer:
 
         # Parameter values
         tao_alpha = tao_beta = 1/100**2
-        burn_in = 250
+        self.burn_in = 750
 
         # model = pystan.StanModel(model_code=Modeller.logistic_reg())
         # fit = model.sampling(data = {'N':len(x),'x':x,'y':y}, iter=1000, chains=2)
@@ -105,27 +113,33 @@ class Inferencer:
 
         # m = Metropolis()
         # alpha_est, beta_est = m.metropolis_two_step(x,y)
-        # print(np.percentile(alpha_est[burn_in:], [10, 25, 50, 75, 90]))
-        # print(np.percentile(beta_est[burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
         #
-        # plt.scatter(alpha_est[burn_in:], beta_est[burn_in:]);plt.show()
-        # plt.hist(-1 * alpha_est[burn_in:] / beta_est[burn_in:]); plt.show() # LD50 values
+        # plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
+        # plt.hist(-1 * alpha_est[self.burn_in:] / beta_est[self.burn_in:]); plt.show() # LD50 values
         #
         # m = Metropolis()
         # alpha_est, beta_est = m.metropolis_2d(x,y)
-        # print(np.percentile(alpha_est[burn_in:], [10, 25, 50, 75, 90]))
-        # print(np.percentile(beta_est[burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
         #
-        # plt.scatter(alpha_est[burn_in:], beta_est[burn_in:]);plt.show()
-        # plt.hist(-1 * np.array(alpha_est)[burn_in:] / np.array(beta_est)[burn_in:]); plt.show() # LD50 values
+        # plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
+        # plt.hist(-1 * np.array(alpha_est)[self.burn_in:] / np.array(beta_est)[self.burn_in:]); plt.show() # LD50 values
 
-        m = Metropolis()
-        alpha_est, beta_est = m.metropolis_2d_opt(x,y)
-        print(np.percentile(alpha_est[burn_in:], [10, 25, 50, 75, 90]))
-        print(np.percentile(beta_est[burn_in:], [10, 25, 50, 75, 90]))
+        # m = Metropolis()
+        # alpha_est, beta_est = m.metropolis_2d_opt(x,y)
+        # print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
 
-        # plt.scatter(alpha_est[burn_in:], beta_est[burn_in:]);plt.show()
-        # plt.hist(-1 * np.array(alpha_est)[burn_in:] / np.array(beta_est)[burn_in:]); plt.show() # LD50 values
+        # plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
+        # plt.hist(-1 * np.array(alpha_est)[self.burn_in:] / np.array(beta_est)[self.burn_in:]); plt.show() # LD50 values
+
+        mh = MH(x,y)
+        alpha_est, beta_est = mh.perform_mh()
+        print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
 
 if __name__ == '__main__':
-    Inferencer.binom()
+    inference = Inferencer()
+    inference.binom()
