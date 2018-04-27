@@ -13,7 +13,8 @@ class MH(Metropolis):
         self.x = x
         self.y = y
         self.MAP = self._get_map()
-        self.delta = 0.5
+        self.delta = 2
+        self.sigma = self.c ** 2 * np.diag([np.sqrt(self.MAP[0]),np.sqrt(self.MAP[1])])
         # self.n_iter = 2000
 
     def _candidate_direction(self, param_val):
@@ -30,18 +31,21 @@ class MH(Metropolis):
         params = [np.random.multivariate_normal(np.array([0,0]), np.diag([1,1]))]
 
 
+
         for i in trange(self.n_iter):
 
             candidate = np.random.multivariate_normal(np.array([0,0]), self.sigma) + self._candidate_direction(params[-1]) # new candidate for alpha
-            print(candidate)
             candidate_prob = self._target_post_2d(self.x, self.y, candidate[0], candidate[1])
-            j_candidate = multivariate_normal(self._candidate_direction(params[-1]), self.sigma).pdf(candidate)
+            j_candidate = np.log(multivariate_normal(self._candidate_direction(params[-1]), self.sigma).pdf(candidate))
 
             old_params = params[-1]
             alpha_prob = self._target_post_2d(self.x, self.y, old_params[0], old_params[1])
-            j_alpha = multivariate_normal(self._candidate_direction(candidate), self.sigma).pdf(params[-1])
+            j_alpha = np.log(multivariate_normal(self._candidate_direction(candidate), self.sigma).pdf(params[-1]))
+            # print(j_candidate < j_alpha)
 
-            density_ratio = (candidate_prob/j_candidate)/(alpha_prob/j_alpha)
+            # density_ratio = np.exp(candidate_prob - j_candidate - alpha_prob + j_alpha)
+            density_ratio = np.exp(candidate_prob-alpha_prob)
+
 
             density_ratio_prob = np.min([1, density_ratio])
             uni_n = np.random.uniform(0, 1, 1)

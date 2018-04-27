@@ -12,11 +12,11 @@ from MH import MH
 
 class Inferencer:
     def __init__(self):
-        self.burn_in = 500
+        self.burn_in = 250
 
     def autocorr(self, posterior_chain):
         """Produce autocorrelation plots"""
-        lags = np.arange(1, 100)
+        lags = np.arange(1, 250)
         plt.plot(lags, [autocorr(posterior_chain[self.burn_in:], l) for l in lags]);
         plt.show()
 
@@ -97,7 +97,6 @@ class Inferencer:
 
         # Parameter values
         tao_alpha = tao_beta = 1/100**2
-        self.burn_in = 750
 
         # model = pystan.StanModel(model_code=Modeller.logistic_reg())
         # fit = model.sampling(data = {'N':len(x),'x':x,'y':y}, iter=1000, chains=2)
@@ -140,6 +139,11 @@ class Inferencer:
         print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
         print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
 
+        self.autocorr(alpha_est[self.burn_in:])
+        self.autocorr(beta_est[self.burn_in:])
+        plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
+
+        plt.show()
 if __name__ == '__main__':
     inference = Inferencer()
     inference.binom()
