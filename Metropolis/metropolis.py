@@ -44,6 +44,7 @@ class Metropolis:
 
     def _target_post(self,x,y, alpha, beta):
         """Evaluate target posterior - alpha is a parameter - binomial logit"""
+
         prior = norm(self.prior_mean,self.prior_std).pdf(beta)
         likelihood = (self._inv_logit(alpha + beta*x)**y)*((1-self._inv_logit(alpha + beta*x))**(self.n-y))
         likelihood = reduce(mul, likelihood)

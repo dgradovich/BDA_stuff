@@ -8,6 +8,7 @@ from Freq import Lin_reg, Probit_reg
 from Metropolis import Metropolis
 from PE import PointEstimator
 from pymc3.stats import autocorr
+from Slice import Slicer
 from MH import MH
 
 class Inferencer:
@@ -133,17 +134,26 @@ class Inferencer:
 
         # plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
         # plt.hist(-1 * np.array(alpha_est)[self.burn_in:] / np.array(beta_est)[self.burn_in:]); plt.show() # LD50 values
+        #
+        # mh = MH(x,y)
+        # alpha_est, beta_est = mh.perform_mh()
+        # print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        #
+        # self.autocorr(alpha_est[self.burn_in:])
+        # self.autocorr(beta_est[self.burn_in:])
+        # plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
+        #
+        # plt.show()
 
-        mh = MH(x,y)
-        alpha_est, beta_est = mh.perform_mh()
+        s = Slicer()
+        # alpha_est, beta_est = s.alpha_ss(x,y)
+        # print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        # print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
+        alpha_est, beta_est = s.slice_sampling(x,y)
         print(np.percentile(alpha_est[self.burn_in:], [10, 25, 50, 75, 90]))
         print(np.percentile(beta_est[self.burn_in:], [10, 25, 50, 75, 90]))
 
-        self.autocorr(alpha_est[self.burn_in:])
-        self.autocorr(beta_est[self.burn_in:])
-        plt.scatter(alpha_est[self.burn_in:], beta_est[self.burn_in:]);plt.show()
-
-        plt.show()
 if __name__ == '__main__':
     inference = Inferencer()
     inference.binom()

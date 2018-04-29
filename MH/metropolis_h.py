@@ -43,8 +43,8 @@ class MH(Metropolis):
             j_alpha = np.log(multivariate_normal(self._candidate_direction(candidate), self.sigma).pdf(params[-1]))
             # print(j_candidate < j_alpha)
 
-            # density_ratio = np.exp(candidate_prob - j_candidate - alpha_prob + j_alpha)
-            density_ratio = np.exp(candidate_prob-alpha_prob)
+            density_ratio = np.exp(candidate_prob - j_candidate - alpha_prob + j_alpha)
+            # density_ratio = np.exp(candidate_prob-alpha_prob)
 
 
             density_ratio_prob = np.min([1, density_ratio])
